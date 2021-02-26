@@ -14,13 +14,18 @@
 
     <div v-else>
       <v-text-field
-        v-if="
-          !value.list &&
-            (value.type === 'number' ||
-              value.type === 'string' ||
-              value.type === 'any')
-        "
-        :type="value.type === 'number' ? 'number' : 'text'"
+        v-if="!value.list && value.type === 'string'"
+        :append-outer-icon="!disable_send ? 'send' : null"
+        :suffix="value.unit"
+        persistent-hint
+        :hint="help"
+        v-model="value.newValue"
+        @click:append-outer="updateValue(value)"
+      ></v-text-field>
+
+      <v-text-field
+        v-if="!value.list && value.type === 'number'"
+        type="number"
         :append-outer-icon="!disable_send ? 'send' : null"
         :suffix="value.unit"
         :min="value.min != value.max ? value.min : null"
@@ -28,7 +33,19 @@
         persistent-hint
         :max="value.min != value.max ? value.max : null"
         :hint="help"
-        v-model="value.newValue"
+        v-model.number="value.newValue"
+        @click:append-outer="updateValue(value)"
+      ></v-text-field>
+
+      <v-text-field
+        v-if="!value.list && value.type === 'any'"
+        :append-outer-icon="!disable_send ? 'send' : null"
+        :suffix="value.unit"
+        persistent-hint
+        :error="!!error"
+        :error-messages="error"
+        :hint="help"
+        v-model="parsedAny"
         @click:append-outer="updateValue(value)"
       ></v-text-field>
 
@@ -44,7 +61,7 @@
           v-model.number="value.newValue.value"
         ></v-text-field>
         <v-select
-          style="margin-left:10px;min-width:100px;width:135px"
+          style="margin-left:10px;min-width:105px;width:135px"
           :items="durations"
           v-model="value.newValue.unit"
           :readonly="!value.writeable || disable_send"
@@ -104,9 +121,10 @@
       ></v-select>
 
       <div v-if="value.type == 'boolean' && value.writeable && value.readable">
-        <v-btn-toggle v-model="value.newValue" rounded class="mt-5">
+        <v-btn-toggle class="mt-4" v-model="value.newValue" rounded>
           <v-btn
             outlined
+            height="40px"
             :value="true"
             :style="{
               background: value.newValue ? '#4CAF50' : ''
@@ -119,6 +137,7 @@
           </v-btn>
           <v-btn
             outlined
+            height="40px"
             :value="false"
             :style="{
               background: !value.newValue ? '#f44336' : ''
@@ -155,7 +174,7 @@
   font-weight: bold;
   color: black;
   padding-left: 0;
-  height: 0;
+  margin-bottom: -10px;
 }
 </style>
 
@@ -172,7 +191,8 @@ export default {
   data () {
     return {
       durations: ['seconds', 'minutes'],
-      menu: false
+      menu: false,
+      error: false
     }
   },
   computed: {
@@ -200,13 +220,35 @@ export default {
       )
     },
     color: {
-      // getter
       get: function () {
         return '#' + (this.value.newValue || 'ffffff').toUpperCase()
       },
-      // setter
       set: function (v) {
         this.value.newValue = v ? v.substr(1, 7) : null
+      }
+    },
+    parsedAny: {
+      get: function () {
+        if (this.value.type === 'any') {
+          if (typeof this.value.newValue === 'object') {
+            return JSON.stringify(this.value.newValue)
+          }
+        }
+        return this.value.newValue
+      },
+      set: function (v) {
+        if (this.value.type === 'any') {
+          if (typeof this.value.value === 'object') {
+            try {
+              this.value.newValue = JSON.parse(v)
+              this.error = false
+            } catch (error) {
+              this.error = 'Value not valid'
+            }
+          }
+        } else {
+          this.value.newValue = v
+        }
       }
     },
     pickerStyle () {

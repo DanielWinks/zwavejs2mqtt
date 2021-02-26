@@ -10,7 +10,8 @@ import {
   ValueID,
   ValueType,
   ZWaveNode,
-  ZWaveOptions
+  ZWaveOptions,
+  ZWavePlusNodeType
 } from 'zwave-js'
 
 export type Z2MValueIdState = {
@@ -97,6 +98,10 @@ export type Z2MNode = {
   manufacturer: string
   firmwareVersion: string
   zwaveVersion: string
+  zwavePlusVersion: number | undefined
+  nodeType: ZWavePlusNodeType | undefined
+  roleType: ZWavePlusRoleType | undefined
+  endpointsCount: number
   isSecure: boolean
   isBeaming: boolean
   isListening: boolean
@@ -115,6 +120,7 @@ export type Z2MNode = {
   ready: boolean
   failed: boolean
   lastActive: number
+  dbLink: string
   interviewCompleted: boolean
   maxBaudRate: number
   interviewStage: InterviewStage
@@ -339,8 +345,8 @@ export interface ZwaveClient extends EventEmitter {
   refreshNeighbors(): void
   connect(): Promise<void>
   sendToSocket(evtName: string, data: any): void
-  _setNodeName(nodeid: number, name: string): Promise<boolean>
-  _setNodeLocation(nodeid: number, loc: string): Promise<boolean>
+  setNodeName(nodeid: number, name: string): Promise<boolean>
+  setNodeLocation(nodeid: number, loc: string): Promise<boolean>
   _createScene(label: string): Promise<boolean>
   _removeScene(sceneid: number): Promise<boolean>
   _setScenes(scenes: Z2MScene[]): Promise<Z2MScene[]>
@@ -391,7 +397,7 @@ export interface Z2MGateway {
   mqtt: MqttClient
   zwave: ZwaveClient
 
-  topicValues: Map<string, string>
+  topicValues: Map<string, Z2MValueId>
   discovered: Map<string, HassDevice>
   topicLevels: number[]
 
@@ -425,4 +431,6 @@ export interface Z2MGateway {
   discoverDevice(node: Z2MNode, hassDevice: HassDevice): void
   discoverClimates(node: Z2MNode): void
   discoverValue(node: Z2MNode, vId: string): void
+  updateNodeTopics(nodeId: number): void
+  removeNodeRetained(nodeId: number): void
 }
