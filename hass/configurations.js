@@ -211,5 +211,12 @@ module.exports = {
       state_value_template: '{{ value_json.value | int }}',
       speed_value_template: '{{ value_json.value | int }}'
     }
+  },
+  device_trigger: {
+    type: 'button',
+    object_id: 'device_trigger',
+    discovery_payload: {
+      automation_type: 'trigger'
+    }
   }
 }
