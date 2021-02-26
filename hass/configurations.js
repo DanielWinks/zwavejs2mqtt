@@ -197,7 +197,7 @@ module.exports = {
     }
   },
   device_trigger: {
-    type: 'button',
+    type: 'device_automation',
     object_id: 'device_trigger',
     discovery_payload: {
       automation_type: 'trigger'
